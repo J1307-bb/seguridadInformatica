@@ -1,5 +1,6 @@
 ﻿using Infraestructure.Auth;
 using Infraestructure.Cors;
+using Infraestructure.EventHandlers;
 using Infraestructure.Persistence;
 using Infraestructure.Settings;
 using Infraestructure.Tenant;
@@ -23,6 +24,7 @@ namespace Infraestructure
                     .AddMultitenancy(configuration)
                     .AddPersistence(configuration)
                     .AddJwt(configuration)
+                    .AddEventHandlers()
                     .AddCorsPolicy();
             return services;
         }

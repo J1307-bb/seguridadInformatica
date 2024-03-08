@@ -20,10 +20,10 @@ namespace Infraestructure.Persistence
         {
             await InitializeTenantDbAsync(cancellationToken);
 
-            foreach (var tenant in await _tenantDbContext.TenantInfo.ToListAsync(cancellationToken))
-            {
-                await InitializeApplicationDbForTenantAsync(tenant, cancellationToken);
-            }
+            //foreach (var tenant in await _tenantDbContext.TenantInfo.ToListAsync(cancellationToken))
+            //{
+            //    await InitializeApplicationDbForTenantAsync(tenant, cancellationToken);
+            //}
 
         }
 

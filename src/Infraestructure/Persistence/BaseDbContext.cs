@@ -50,23 +50,33 @@ namespace Infraestructure.Persistence
 
         public override async Task<int> SaveChangesAsync(CancellationToken cancellationToken = new CancellationToken())
         {
-
-
-            foreach (var entry in ChangeTracker.Entries<AuditableBaseEntry>())
+            try
             {
-                switch (entry.State)
+                foreach (var entry in ChangeTracker.Entries<AuditableBaseEntry>())
                 {
-                    case EntityState.Added:
-                        entry.Entity.Created = DateTime.Now;
-                        entry.Entity.CreatedBy = _currentUser.GetUserId() ?? 0;
-                        break;
-                    case EntityState.Modified:
-                        entry.Entity.Modified = DateTime.Now;
-                        entry.Entity.ModifiedBy = _currentUser.GetUserId();
-                        break;
+                    switch (entry.State)
+                    {
+                        case EntityState.Added:
+                            entry.Entity.Created = DateTime.Now;
+                            entry.Entity.CreatedBy = _currentUser.GetUserId() ?? 0;
+                            break;
+                        case EntityState.Modified:
+                            entry.Entity.Modified = DateTime.Now;
+                            entry.Entity.ModifiedBy = _currentUser.GetUserId();
+                            break;
+                    }
                 }
+
+                return await base.SaveChangesAsync(cancellationToken);
             }
-            return await base.SaveChangesAsync(cancellationToken);
+            catch (Exception ex)
+            {
+                foreach (var entry in ChangeTracker.Entries())
+                {
+                    entry.State = EntityState.Detached;
+                }
+                throw;
+            }
         }
 
     }

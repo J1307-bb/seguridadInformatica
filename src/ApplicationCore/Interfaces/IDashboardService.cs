@@ -9,5 +9,6 @@ namespace ApplicationCore.Interfaces
         //Task<Response<int>> CreateUserAsync(PersonaDto request);
         Task<Response<string>> GetClientIpAddress();
         Task<Response<int>> CreateLog(LogDto logsDto);
+        Task<Response<int>> CreatePersona(PersonaDto personaDto);
     }
 }

@@ -10,6 +10,7 @@ using Microsoft.AspNetCore.Http;
 using System.Net.Sockets;
 using System.Net;
 using ApplicationCore.Commands;
+using Domain.Entities;
 
 namespace Infraestructure.Services
 {
@@ -48,6 +49,59 @@ namespace Infraestructure.Services
 
             return new Response<string>(ipAddressString);
 
+        }
+
+        public async Task<Response<int>> CreatePersona(PersonaDto request)
+        {
+            try
+            {
+                var p = new CreatePersonaCommand();
+                p.Nombre = request.Nombre;
+                p.Ciudad = request.Ciudad;
+                p.ComidaFav = request.ComidaFav;
+                p.ColorFav = request.ColorFav;
+                p.CancionFav = request.CancionFav;
+
+                var pe = _mapper.Map<Domain.Entities.persona>(p);
+                await _dbContext.persona.AddAsync(pe);
+                var req = await _dbContext.SaveChangesAsync();
+                var res = new Response<int>(pe.PkPersona, "Registro creado");
+
+                //Logs
+                var log = new LogDto();
+                log.Datos = "Datos";
+                log.fecha = DateTime.Now.ToString();
+                log.NomFuncion = "Create";
+                log.mensaje = res.Message;
+                log.StatusLog = "200";
+
+                await CreateLog(log);
+                return res;
+
+            }
+            catch (Exception ex)
+            {
+                // Manejar otras excepciones
+                var errorLog = new LogDto();
+                errorLog.Datos = "Datos";
+                errorLog.fecha = DateTime.Now.ToString();
+                errorLog.NomFuncion = "Create";
+
+                if (ex.InnerException != null)
+                {
+                    errorLog.mensaje = $"Error desconocido al crear el registro. Mensaje interno: {ex.InnerException.Message}";
+                }
+                else
+                {
+                    errorLog.mensaje = "Error desconocido al crear el registro";
+                }
+
+                errorLog.StatusLog = "500";
+
+                await CreateLog(errorLog);
+                throw;
+
+            }
         }
 
         public async Task<Response<int>> CreateLog(LogDto request)

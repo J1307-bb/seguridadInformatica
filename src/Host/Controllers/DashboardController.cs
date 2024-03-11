@@ -44,9 +44,10 @@ namespace Host.Controllers
         //Create de Personas
         //</summary>
         [HttpPost("create")]
-        public async Task<ActionResult<Response<int>>> Create(CreatePersonaCommand request)
+        public async Task<ActionResult<Response<int>>> Create([FromBody] PersonaDto request)
         {
-            var result = await _mediator.Send(request);
+            var result = await _service.CreatePersona(request);
+            //var result = await _mediator.Send(request);
             return Ok(result);
         }
 

@@ -10,5 +10,10 @@ namespace ApplicationCore.Interfaces
         Task<Response<string>> GetClientIpAddress();
         Task<Response<int>> CreateLog(LogDto logsDto);
         Task<Response<int>> CreatePersona(PersonaDto personaDto);
+        Task<Response<int>> UpdatePersona(int idPersona, PersonaDto personaDto);
+        Task<Response<int>> DeletePersona(int idPersona);
+
+        Task<Response<object>> GetDataPagination();
+
     }
 }

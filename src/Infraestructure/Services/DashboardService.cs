@@ -11,6 +11,9 @@ using System.Net.Sockets;
 using System.Net;
 using ApplicationCore.Commands;
 using Domain.Entities;
+using Newtonsoft.Json;
+using Org.BouncyCastle.Asn1.Ocsp;
+using MediatR;
 
 namespace Infraestructure.Services
 {
@@ -28,8 +31,6 @@ namespace Infraestructure.Services
             _mapper = mapper;
             _httpContextAccessor = httpContextAccessor;
         }
-
-
 
         public async Task<Response<object>> GetData()
         {
@@ -69,7 +70,7 @@ namespace Infraestructure.Services
 
                 //Logs
                 var log = new LogDto();
-                log.Datos = "Datos";
+                log.Datos = JsonConvert.SerializeObject(request);
                 log.fecha = DateTime.Now.ToString();
                 log.NomFuncion = "Create";
                 log.mensaje = res.Message;
@@ -83,7 +84,7 @@ namespace Infraestructure.Services
             {
                 // Manejar otras excepciones
                 var errorLog = new LogDto();
-                errorLog.Datos = "Datos";
+                errorLog.Datos = JsonConvert.SerializeObject(request); ;
                 errorLog.fecha = DateTime.Now.ToString();
                 errorLog.NomFuncion = "Create";
 
@@ -124,6 +125,118 @@ namespace Infraestructure.Services
             await _dbContext.SaveChangesAsync();
             return new Response<int>(lo.idLog, "Registro creado");
 
+        }
+
+        public async Task<Response<int>> UpdatePersona(int id, PersonaDto request)
+        {
+            try
+            {
+                var persona = await _dbContext.persona.FindAsync(id);
+
+                persona.Nombre = request.Nombre;
+                persona.Ciudad = request.Ciudad;
+                persona.ComidaFav = request.ComidaFav;
+                persona.ColorFav = request.ColorFav;
+                persona.CancionFav = request.CancionFav;
+
+                await _dbContext.SaveChangesAsync();
+                var res = new Response<int>(id,"Persona actualizada");
+
+                //Logs
+                var log = new LogDto();
+                log.Datos = JsonConvert.SerializeObject(request);
+                log.fecha = DateTime.Now.ToString();
+                log.NomFuncion = "Update";
+                log.mensaje = res.Message;
+                log.StatusLog = "200";
+
+                await CreateLog(log);
+
+                return res; 
+            }
+            catch (Exception ex)
+            {
+                // Manejar otras excepciones
+                var errorLog = new LogDto();
+                errorLog.Datos = JsonConvert.SerializeObject(request); ;
+                errorLog.fecha = DateTime.Now.ToString();
+                errorLog.NomFuncion = "Update";
+
+                if (ex.InnerException != null)
+                {
+                    errorLog.mensaje = $"Error desconocido al Actualizar la persona. Mensaje interno: {ex.InnerException.Message}";
+                }
+                else
+                {
+                    errorLog.mensaje = "Error desconocido al Actualizar la persona:" + ex.Message;
+                }
+
+                errorLog.StatusLog = "500";
+
+                await CreateLog(errorLog);
+                throw;
+            }
+        }
+
+        public async Task<Response<int>> DeletePersona(int id)
+        {
+            try
+            {
+                var persona = await _dbContext.persona.FindAsync(id);
+
+                _dbContext.persona.Remove(persona);
+                await _dbContext.SaveChangesAsync();
+                var res = new Response<int>(id, "Persona eliminada");
+
+                //Logs
+                var log = new LogDto();
+                log.Datos = "ID: " + id.ToString();
+                log.fecha = DateTime.Now.ToString();
+                log.NomFuncion = "Delete";
+                log.mensaje = res.Message;
+                log.StatusLog = "200";
+
+                await CreateLog(log);
+
+                return res;
+            }
+            catch (Exception ex)
+            {
+                // Manejar otras excepciones
+                var errorLog = new LogDto();
+                errorLog.Datos = $"ID: {id}";
+                errorLog.fecha = DateTime.Now.ToString();
+                errorLog.NomFuncion = "Delete";
+
+                if (ex.InnerException != null)
+                {
+                    errorLog.mensaje = $"Error desconocido al Eliminar la persona. Mensaje interno: {ex.InnerException.Message}";
+                }
+                else
+                {
+                    errorLog.mensaje = "Error desconocido al Eliminar la persona:" + ex.Message;
+                }
+
+                errorLog.StatusLog = "500";
+
+                await CreateLog(errorLog);
+                throw;
+            }
+        }
+
+        public async Task<Response<object>> GetDataPagination()
+        {
+            object list = new object();
+
+            int pageNumber = 1;
+            int pageSize = 10;
+
+            list = await _dbContext.persona.OrderBy(x => x.PkPersona)
+                .Skip((pageNumber -1) * pageSize)
+                .Take(pageSize)
+                .ToListAsync();
+
+            return new Response<object>(list);
         }
 
     }
